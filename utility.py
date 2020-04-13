@@ -1,33 +1,92 @@
 import re
 import test
 
+
 def extract_data_nsdl(data):
     result=[]
     range_index=2
     for index in range(len(data)):
+        if re.search(r'\(PAN:[A-Z|0-9]{10}\)',data[index]):
+            result.append({'PAN :':re.search(r'\(PAN:([A-Z|0-9]{10})\)',data[index]).group(1)})
+        #if re.search(r'[A-z|0-9]+?\s+?Client?\s+ID\:?\s?([0-9]+)',data[index]):
+        #    print(re.search(r'([A-z|0-9]+)?\s+?Client?\s+ID\:?\s?([0-9]+)',data[index]).group())
+        if re.search(r'Client?\s+ID\:?\s?([0-9]+)',data[index]):
+            result.append({'Client ID :':re.search(r'Client?\s+ID\:?\s?([0-9]+)',data[index]).group(1)})
+            #print(re.search(r'Client?\s+ID\:?\s?([0-9]+)',data[index]).group(1))
+        if re.search(r'DP?\s+ID\:?\s?[A-Z|0-9]+',data[index]):
+            result.append({'DP ID :':re.search(r'DP?\s+ID\:?\s?([A-Z|0-9]+)',data[index]).group(1)})
+            #print(re.search(r'DP?\s+ID\:?\s?([A-Z|0-9]+)',data[index]).group(1))
         if re.search(r'CAS ID',data[index]):
-            result.append(['details']+[data[index]]+re.split(r'(PINCODE)',data[index:index+range_index][-1]))
-            #result.append(test.details(['details']+[data[index]]+re.split(r'(PINCODE)',data[index:index+range_index][-1])))
+            #result.append(['details']+[data[index]]+re.split(r'(PINCODE)',data[index:index+range_index][-1]))
+            try:
+                result.append(test.details(['details']+[data[index]]+re.split(r'(PINCODE)',data[index:index+range_index][-1])))
+            except Exception:
+                result.append({'error':'details error'})
+                print('details error')
         elif re.search(r'Statement for the period',data[index]):
-            result.append(['duration']+[data[index]])
-            #result.append(test.duration(['duration']+[data[index]]))
+            #result.append(['duration']+[data[index]])
+            try:
+                result.append(test.duration(['duration']+[data[index]]))
+            except Exception:
+                print('duration error')
+                result.append({'error':'duration error'})
         elif re.search(r'Account Type Account Details',data[index]):
-            result.append(['account type']+re.split(r'([0-9]+,[0-9|,]+\.[0-9]{2,4})',data[index:index+range_index][-1]))
-        elif re.search(r'ISIN Description|UCC Units Cost',data[index]):
+            try:
+                result.append(test.account_type(['account type']+re.split(r'([0-9]+,[0-9|,]+\.[0-9]{2,4})|([0-9]+\.[0-9]{2,4})|([\w]+\sDemat Account)|(Mutual Fund Folios)',data[index:index+range_index][-1])))
+            except Exception:
+                result.append({'error':'Account Detail error'})
+                print('Account Detail error')
+            #result.append(['account type']+re.split(r'([0-9]+,[0-9|,]+\.[0-9]{2,4})|([0-9]+\.[0-9]{2,4})|([\w]+\sDemat Account)|(Mutual Fund Folios)',data[index:index+range_index][-1]))
+        elif re.search(r'ISIN Description|[UCC|uCcC] Units Cost|Profit\/\(Loss\)',data[index]):
             #result.append(['mutual funds']+data[index:index+range_index])
-            result.append(['mutual funds']+re.split(r'(IN[A-Z|0-9]+[0-9])',data[index:index+range_index][-1]))
-            #result.append(test.mutual_fund_extraction(['mutual funds']+re.split(r'(IN[A-Z|0-9]+[0-9])',data[index:index+range_index][-1])))
-        elif re.search(r'Company Name',data[index]):
-            if re.search(r'[0-9]{2}-[A-Z][a-z]{2}-[0-9]{4}',data[index:index+range_index][-1]):
-                #result.append(['corporate bond']+data[index:index+range_index])
-                result.append(['corporate bond']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
-                #result.append(test.corporate_bond(['corporate bond']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+            #result.append(['mutual funds']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
+            try:
+                result.append(test.mutual_fund_extraction(['mutual funds']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+            except Exception:
+                result.append({'error':'mutual fund error'})
+                print('mutual fund error')
+        elif re.search(r'Stock Symbol|SECURITY',data[index]):
+            if re.search(r'SECURITY',data[index]):
+                #result.append(['equity share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
+                try:
+                    result.append(test.equity_type_2(['equity share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+                except Exception:
+                    print('error in equity security')
+                    result.append({'error':'security equity error'})
             else:
-                result.append(['other share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
-                #result.append(test.mutual_fund_extraction(['other share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+                #result.append(['equity share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
+                try:
+                    result.append(test.equity(['equity share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+                except Exception:
+                    print('error in equity')
+                    result.append({'error':'error in equity'})
+                    #result.append(test.equity(['equity share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+        elif re.search(r'Company Name|Value in',data[index]):
+            if re.search(r'[0-9]{2}-[A-Z][a-z]{2}-[0-9]{4}',data[index:index+range_index][-1]):
+                #result.append(['corporate bond']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
+                try:
+                    result.append(test.corporate_bond(['corporate bond']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+                except Exception:
+                    try:
+                        print('trying another method')
+                        result.append(test.corporate_bond_type_2(['corporate bond']+re.split(r'(IN[A-Z|0-9]+[0-9]|-?[0-9,]+[\.|-][0-9|\.]+?\s+[0-9]{2}-[A-Z][a-z]{2}-[0-9]{4})|Page',data[index:index+range_index][-1])))
+                    except Exception:
+                        result.append({'error':'corporate bond error'})
+                        print('corporate bond error')
+            else:
+                if re.search(r'(IN[A-Z|0-9]+[0-9])',data[index]):
+                    #result.append(['other share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1]))
+                    try:
+                        result.append(test.mutual_fund_extraction(['other share']+re.split(r'(IN[A-Z|0-9]+[0-9])|Page',data[index:index+range_index][-1])))
+                    except Exception:
+                        result.append({'error':'other error'})
+                        print('other error')
+                else:
+                    pass
         elif re.search(r'Total',data[index]):
             result.append(['Total']+[data[index]])
     return result
+
 
 
 def extract_data(file_name='new_result.txt'):
@@ -57,13 +116,14 @@ def extract_data(file_name='new_result.txt'):
     return count
 
 
+
 def read_hpi(File_data):
     count=0
     result_data=[]
     prev_heading=''
     neg=False
     #word=r'ISIN Description|Total$|End of Statement|CAS ID|Statement for the period'
-    word=r'Notes:|PORTFOLIO VALUE|Note:|CAS ID|Statement for the period|Total|Account Type Account Details|ISIN Description|Company Name|Transactions|UCC Units Cost'    
+    word=r'Notes:|PORTFOLIO VALUE|Note:|CAS ID|Statement for the period|Total|Account Type Account Details|ISIN Description|Company Name|[UCC|uCcC] Units Cost|End of Statement|Value in|Profit\/\(Loss\)|SECURITY|Stock Symbol|\| Transactions|Order No'    
     k = re.compile(word)  
     current_heading=False
     data=''
@@ -76,17 +136,17 @@ def read_hpi(File_data):
             else:
                 if data.strip() and not neg:
                     result_data.append(data.strip())
-                #print(data)
+                #print(neg)
             data=''
-            #print('................found........................',line) 
+            #print('................found........................',re.search(k,line).group()) 
             if current_heading:
-                word_neg='End of Statement|Notes:|Note:|Total|Transactions'#TOTAL$|
+                word_neg=r'End of Statement|Notes:|Note:|Total|\| Transactions|Order No'
                 k2 = re.compile(word_neg, re.I) 
                 if re.search(k2,line):
                     neg=True
                 else:
-                    if prev_heading!=line.strip():
-                        result_data.append(line.strip())
+                    #if prev_heading!=line.strip():
+                    result_data.append(line.strip())
                     prev_heading=line.strip()
                     neg=False
         elif current_heading and len(File_data)==count and not neg:
@@ -94,3 +154,5 @@ def read_hpi(File_data):
         else:
             data=data+line+' '
     return(result_data)
+
+
