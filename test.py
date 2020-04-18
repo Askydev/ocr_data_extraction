@@ -5,7 +5,7 @@ def corporate_bond(data):
     data_json={}
     data_json['corporate bond']=[]
     Flag=True
-    data_json['details']=[]
+    data_json['corporate_details']=[]
     sum_val=0
     count=0
     for index in range(len(data)):
@@ -43,7 +43,7 @@ def corporate_bond(data):
         elif re.search(date_regex,data[index]) and Flag:
             print('error occured in corporate bond')
             raise
-    data_json['details'].append({'TotalCorporateBond':count,'TotalValue':sum_val})
+    data_json['corporate_details'].append({'TotalCorporateBond':count,'TotalValue':sum_val})
     return(data_json)
 
 
@@ -51,7 +51,7 @@ def corporate_bond(data):
 def mutual_fund_extraction(mutual_fund):
     data_json={}
     data_json['mutual funds']=[]
-    data_json['details']=[]
+    data_json['mutual_details']=[]
     sum_val=0
     count=0
     for index in range(len(mutual_fund)):
@@ -98,7 +98,7 @@ def mutual_fund_extraction(mutual_fund):
             temp['IsinName']=line
             count=count+1
             data_json['mutual funds'].append(temp)
-    data_json['details'].append({'TotalMutualFund':count,'TotalValue':sum_val})
+    data_json['mutual_details'].append({'TotalMutualFund':count,'TotalValue':sum_val})
     return(data_json)
 
 
@@ -120,9 +120,9 @@ def details(details):
     temp={}
     for index in range(len(details)):
         if re.search(r'CAS ID:',details[index]):
-            temp['CAS ID:']=re.sub(r'CAS ID:','',details[index]).strip()
+            temp['CAS ID:']=re.sub(r'CAS ID','',details[index]).strip()
         elif re.search(r'PINCODE',details[index]):
-            temp['PINCODE:']=re.sub(r':','',details[index+1]).strip()
+            temp['PINCODE']=re.sub(r':','',details[index+1]).strip()
             break
         else:
             temp['Address']=' '.join([str(elem) for elem in details[index].split(' ')[2:]])
@@ -136,7 +136,7 @@ def account_type(details):
     temp={}
     data_json={}
     data_json['AccountInfo']=[]
-    data_json['details']=[]
+    data_json['account_details']=[]
     sum_val=0
     count=0
     for data in details[1:]:
@@ -162,7 +162,7 @@ def account_type(details):
                 string=''
             else:
                 string+=' '+data
-    data_json['details'].append({'TotalAccount':count,'GrandTotal':sum_val})
+    data_json['account_details'].append({'TotalAccount':count,'GrandTotal':sum_val})
     return(data_json)
 
 
@@ -178,7 +178,7 @@ def get_val(val):
 def equity(data):
     data_json={}
     data_json['equity']=[]
-    data_json['details']=[]
+    data_json['equity_details']=[]
     sum_val=0
     count=0
     for index in range(len(data)):
@@ -220,14 +220,14 @@ def equity(data):
                     raise
                 count=count+1
                 data_json['equity'].append(temp)
-    data_json['details'].append({'TotalAccount':count,'GrandTotal':sum_val})
+    data_json['equity_details'].append({'TotalAccount':count,'GrandTotal':sum_val})
     return(data_json)
 
 
 def equity_type_2(data):
     data_json={}
     data_json['equity']=[]
-    data_json['details']=[]
+    data_json['equity_details']=[]
     sum_val=0
     count=0
     for index in range(len(data)):
@@ -253,14 +253,14 @@ def equity_type_2(data):
                     raise
                 count=count+1
                 data_json['equity'].append(temp)
-    data_json['details'].append({'total count':count,'Total':sum_val})
+    data_json['equity_details'].append({'total count':count,'Total':sum_val})
     return(data_json)
 
 
 def corporate_bond_type_2(data):
     data_json={}
     data_json['corporate bond']=[]
-    data_json['details']=[]
+    data_json['corporate_details']=[]
     sum_val=0
     count=0
     for index in range(len(data)):
@@ -295,6 +295,5 @@ def corporate_bond_type_2(data):
                     raise
             count=count+1
             data_json['corporate bond'].append(temp)
-    data_json['details'].append({'TotalCorporateBond':count,'TotalValue':sum_val})
+    data_json['corporate_details'].append({'TotalCorporateBond':count,'TotalValue':sum_val})
     return(data_json)
-        
